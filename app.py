@@ -20,7 +20,7 @@ def calc_balance(transactions):
     for name in names:
         balance[name]=0
     for transaction in transactions:
-        print transaction
+        #print transaction
         balance[transaction[meal_schema.index('recipient')]]-=transaction[meal_schema.index("total")]
         for i in xrange(len(names)):
             if transaction[len(meal_schema)+i]:
@@ -43,8 +43,8 @@ def new_entry():
         cursor = db.cursor()
         cursor.execute(create_str)
         form_vals=[]
-        print request.form
-        print request.form["individual"]
+        #print request.form
+        #print request.form["individual"]
         for field in meal_schema:
             form_vals.append(request.form[field])
         for name in names:
