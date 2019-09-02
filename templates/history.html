@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+{% block body %}
+Running Balance<br>
+<table border="black">
+    {% for name, num in balance.items() %}
+    <tr>
+        <td> {{ name }} </td>
+        <td> {{ num }} </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br>
+Transactions
+<br>
+<table border="black">
+    <tr>
+    {% for field in schema %}
+        <th> {{field}} </th>
+    {% endfor %}
+    </tr>
+    {% for item in history %}
+        <tr>
+        {% for field in item %}
+        <td>
+        {{ field }}
+        </td>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Mealz - New Entry</title>
+</head>
+
+<body>
+    <form role="form" method="POST" action="new_entry">
+        Date <input type="date" name="date"> <br>
+        Description <br>
+        <textarea rows="10" cols="50" name="description" value="Description"></textarea><br>
+        {% for name in names %}
+            {{ name }} <input type="checkbox" class="participant" id="{{ name }}" name="{{ name }}"> <br>
+        {% endfor %}
+        Supplier
+        <select name="recipient" id="recipient">
+            {% for name in names %}
+                <option value="{{ name }}">{{ name }}</option>
+            {% endfor %}
+        </select><br>
+        <!--
+        Allison <input type="checkbox" name="Allison"> <br>
+        Dan <input type="checkbox" name="Dan"> <br>
+        Ivan <input type="checkbox" name="Ivan"> <br>
+        Justin <input type="checkbox" name="Justin"> <br>
+        Ellis <input type="checkbox" name="Ellis"> <br>
+        Melvin <input type="checkbox" name="Melvin"> <br>
+        -->
+        Total Cost <input type="number" id="total" name="total" step="0.01"> <br>
+        Individual Cost <input type="number" id="individual" name="individual" step="0.01" readonly> <br>
+        <input type="submit" value="submit">
+    </form>
+</body>
+<script>
+    var participants=0;
+    var participant_inputs = document.getElementsByClassName("participant");
+    var updateCost = function updateCost(){
+        document.getElementById("individual").value = document.getElementById("total").value/participants;
+    };
+    var updateRoster = function updateRoster(){
+        participants=0;
+        for (var i=0; i<participant_inputs.length; i++){
+            if (participant_inputs[i].checked){
+                participants++;
+            }
+        }
+        updateCost();
+    };
+    var updateSupplier = function updateSupplier(){
+        document.getElementById(document.getElementById("recipient").value).checked=false;
+        for (var i=0; i<participant_inputs.length; i++){
+            participant_inputs[i].disabled=false;
+        }
+        document.getElementById(document.getElementById("recipient").value).disabled=true;
+        updateRoster();
+        updateCost();
+    }
+    for (var i=0; i<participant_inputs.length; i++){
+        participant_inputs[i].addEventListener("click",function(){
+            updateRoster();
+        });
+    }
+    document.getElementById("total").addEventListener("blur",function(){
+        updateCost();
+    });
+    document.getElementById("recipient").addEventListener("change",function(){
+        updateSupplier();
+    });
+    updateSupplier();
+</script>
+</html>
