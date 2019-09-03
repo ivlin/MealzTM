@@ -1,26 +1,32 @@
 {% extends "base.html" %}
 {% block body %}
-Running Balance<br>
-<table border="black">
+<h2>Running Balance</h2>
+<table>
+    <tr>
+        <th>
+            Name
+        </th>
+        <th>
+            Balance
+        </th>
+    </tr>
     {% for name, num in balance.items() %}
     <tr>
-        <td> {{ name }} </td>
-        <td> {{ num }} </td>
+        <td style="background-color: #EEE; margin: 0; padding: 5px"> {{ name }} </td>
+        <td style="margin: 0; padding: 5px"> {{ num }} </td>
     </tr>
     {% endfor %}
 </table>
-
-<br>
-Transactions
-<br>
-<table border="black">
-    <tr>
+<hr>
+<h2>Transactions</h2>
+<table id="transaction-table">
+    <tr style="background-color: #EEE; margin: 0; padding: 5px">
     {% for field in schema %}
         <th> {{field}} </th>
     {% endfor %}
     </tr>
     {% for item in history %}
-        <tr>
+        <tr class="transaction-item">
         {% for field in item %}
         <td>
         {{ field }}
@@ -28,5 +34,29 @@ Transactions
         {% endfor %}
         </tr>
     {% endfor %}
-    </table>
+</table>
+<style>
+h2 {
+    font-family: Roboto;
+}
+table {
+    font-family: Roboto;
+}
+th,td {
+    padding: 5px;
+}
+</style>
+<script>
+document.getElementById("transaction-table").addEventListener("click",function(){
+    var transactions=document.getElementsByClassName("transaction-item");
+    for (var i=0; i<transactions.length; i++){
+        if (transactions[i].style.display=="none"){
+            transactions[i].style.display="";
+        }
+        else{
+            transactions[i].style.display="none";
+        }
+    }
+});
+</script>
 {% endblock %}

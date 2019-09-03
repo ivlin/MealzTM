@@ -1,0 +1,41 @@
+body{
+    padding: 5px;
+    margin: 0;
+    height:100%;
+}
+#header{
+    margin:-5px;
+    display:flex;
+    height: 10%;
+    width: 100%;
+    position: fixed;
+    min-height: 20px;
+    max-height:100px;
+    background-color: red;
+    position: fixed;
+    text-align: center;
+    font-family:Roboto;
+    font-size: 2em;
+}
+a {
+    margin: auto;
+    text-decoration: none;
+    height: 100%;
+    width: 100%;
+}
+#header div{
+    display: flex;
+    height: 100%;
+}
+#header a div p{
+    margin: auto;
+    text-align: center;
+}
+#goto_new{
+    background-color: #444054;
+    color: #FAC9B8;
+}
+#goto_old{
+    color: #444054;
+    background-color: #FAC9B8;
+}
