@@ -21,7 +21,7 @@ def calc_balance(transactions):
         balance[name]=0
     for transaction in transactions:
         #print transaction
-        balance[transaction[meal_schema.index('recipient')]]-=transaction[meal_schema.index("total")]
+        balance[transaction[meal_schema.index('recipient')]]-=transaction[meal_schema.index("total")]-transaction[meal_schema.index('individual')]
         for i in xrange(len(names)):
             if transaction[len(meal_schema)+i]:
                 balance[names[i]]+=transaction[meal_schema.index('individual')]
