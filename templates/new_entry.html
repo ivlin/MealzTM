@@ -1,20 +1,21 @@
 <!DOCTYPE html>
-<html>
-
-<head>
-    <title>Mealz - New Entry</title>
-</head>
-
-<body>
+{% extends "base.html" %}
+{% block body %}
     <form role="form" method="POST" action="new_entry">
         Date <input type="date" name="date"> <br>
         Description <br>
         <textarea rows="10" cols="50" name="description" value="Description"></textarea><br>
+        Recipients
+        <div class="indented">
         {% for name in names %}
-            {{ name }} <input type="checkbox" class="participant" id="{{ name }}" name="{{ name }}"> <br>
+            <label class="container">{{ name }}
+                <input type="checkbox" class="participant" id="{{ name }}" name="{{ name }}">
+                <span class="checkmark"></span>
+            </label>
         {% endfor %}
+        </div>
         Supplier
-        <select name="recipient" id="recipient">
+        <select class="styled-select slate" name="recipient" id="recipient">
             {% for name in names %}
                 <option value="{{ name }}">{{ name }}</option>
             {% endfor %}
@@ -31,7 +32,6 @@
         Individual Cost <input type="number" id="individual" name="individual" step="0.01" readonly> <br>
         <input type="submit" value="submit">
     </form>
-</body>
 <script>
     var participants=0;
     var participant_inputs = document.getElementsByClassName("participant");
@@ -69,4 +69,4 @@
     });
     updateSupplier();
 </script>
-</html>
+{% endblock %}
