@@ -31,6 +31,7 @@ def calc_balance(transactions):
 def view_history():
     db = sqlite3.connect("db/mealtracker")
     cursor = db.cursor()
+    cursor.execute(create_str)
     history=cursor.execute("SELECT * FROM meal").fetchall()
     return render_template("history.html",schema=meal_schema+names,history=history,names=names,balance=calc_balance(history))
 
