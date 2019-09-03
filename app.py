@@ -4,7 +4,7 @@ import sqlite3
 app = Flask(__name__)
 
 meal_schema=["date","description","total","individual","recipient"]
-names=["Allison","Dan","Justin","Ivan","Ellis","Melvin","Other"]
+names=["Allison","Dan","Justin","Ivan","Ellis","Melvin"]
 create_str="CREATE TABLE IF NOT EXISTS meal (datestring VARCHAR(10), description VARCHAR(50), total REAL, individual REAL, recipient VARCHAR(10))"
 insert_str="INSERT INTO meal VALUES (?, ?, ?, ?, ?)"
 for name in names:
