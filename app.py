@@ -106,11 +106,30 @@ def new_entry(room_id):
                 recipient=cursor.execute("SELECT rowid FROM people WHERE room = ? AND name = ?",(room_id, request.form["recipient"])).fetchone()[0]
                 cursor.execute("INSERT INTO payment VALUES (?, ?, ?, ?, ?)", (room_id, meal_id, sender, recipient, request.form["individual"]))
                 cursor.execute("UPDATE people SET balance = balance + ? WHERE rowid = ?",(request.form["individual"], sender))
-                cursor.execute("UPDATE people SET balance = balance - ? WHERE rowid = ?",(request.form["total"], recipient))
+        cursor.execute("UPDATE people SET balance = balance - ? WHERE rowid = ?",(request.form["total"], recipient))
         db.commit()
         return redirect(url_for("new_entry", room_id=room_id))
 
-@app.route("/reset")
+@app.route("/<room_id>/clear")
+def clear():
+    db = sqlite3.connect("db/mealtracker")
+    cursor = db.cursor()
+    cursor.execute("UPDATE people SET balance = 0 WHERE room = ?",(room_id))
+    db.commit()
+    return redirect(url_for("view_history",room_id=room_id))
+
+
+@app.route("/<room_id>/delete")
+def delete_room():
+    db = sqlite3.connect("db/mealtracker")
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM meals WHERE room = ?")
+    cursor.execute("DELETE FROM people WHERE room = ?")
+    cursor.execute("DELETE FROM payment WHERE room = ?")
+    db.commit()
+    return redirect(url_for("index"))
+
+@app.route("/reset_database")
 def reset():
     os.remove("db/mealtracker")
     return redirect(url_for("index"))
