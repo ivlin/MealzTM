@@ -1,33 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
-import os, math
+import os
+from utils import *
 
 app = Flask(__name__)
 
 meal_schema=["room","date","description","total","individual","recipient"]
-
-def get_names(room_id):
-    db=sqlite3.connect("db/mealtracker")
-    cursor=db.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS people (name VARCHAR(30), balance REAL, room INT)")
-    names=cursor.execute("SELECT name FROM people WHERE room = ?",(room_id)).fetchall()
-    return [name[0] for name in names]
-
-def get_createstring(names):
-    create_str="CREATE TABLE IF NOT EXISTS meal (room INT, datestring VARCHAR(10), description VARCHAR(50), total REAL, individual REAL, recipient VARCHAR(10))"
-    return create_str
-
-def get_insertstring(names):
-    insert_str="INSERT INTO meal VALUES (?, ?, ?, ?, ?, ?)"
-    return insert_str
-
-def get_table(tablename, createstring, include_id=False):
-    db=sqlite3.connect("db/mealtracker")
-    cursor = db.cursor()
-    cursor.execute(createstring)
-    if include_id:
-        return cursor.execute("SELECT rowid,* FROM "+tablename).fetchall()
-    return cursor.execute("SELECT * FROM "+tablename).fetchall()
 
 @app.route("/")
 def index():
@@ -81,6 +59,7 @@ def view_history(room_id):
         combined_view[meal[0]] = list(meal[1:]) + [0]*len(names)
     for transaction in transactions:
         combined_view[transaction[0]][len(meal_schema)+names.index(transaction[1])] = transaction[3]
+    people = [[person[0], round(person[1]*100)/100] for person in people]
     return render_template("history.html",schema=meal_schema+names,history=combined_view,names=names,balance=people)
 
 @app.route("/<room_id>/new_entry", methods=["GET","POST"])
