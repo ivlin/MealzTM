@@ -1,7 +1,21 @@
 <!DOCTYPE html>
 {% extends "base.html" %}
 {% block body %}
-    <form role="form" method="POST" action="new_entry">
+    <div class="form_container">
+    New Lobby Name
+    <form id="new_lobby_name" role="form" method="POST" action="edit_lobby">
+        <input type="text" name="lobby_name" value="{{ room_name }}" required> <input type="submit" value="Change">
+    </form>
+    </div>
+    <hr>
+    <div class="form_container">
+    New Member
+    <form id="new_member_form" role="form" method="POST" action="new_member">
+        <input type="text" name="new_member" required> <input type="submit" value="Add">
+    </form>
+    </div>
+    <hr>
+    <form id="new_entry_form" role="form" method="POST" action="new_entry">
         Date <span style="color:red; text-decoration:bold">*</span><input type="date" name="date" required> <br>
         Description <br>
         <textarea rows="10" cols="50" name="description" value="Description"></textarea><br>
@@ -20,23 +34,17 @@
                 <option value="{{ name }}">{{ name }}</option>
             {% endfor %}
         </select><br>
-        <!--
-        Allison <input type="checkbox" name="Allison"> <br>
-        Dan <input type="checkbox" name="Dan"> <br>
-        Ivan <input type="checkbox" name="Ivan"> <br>
-        Justin <input type="checkbox" name="Justin"> <br>
-        Ellis <input type="checkbox" name="Ellis"> <br>
-        Melvin <input type="checkbox" name="Melvin"> <br>
-        -->
         Total Cost <span style="color:red; text-decoration:bold">*</span><input type="number" id="total" name="total" step="0.01" value="0.00" required> <br>
         Individual Cost <input type="number" id="individual" name="individual" step="0.01" readonly> <br>
-        <input type="submit" value="submit">
+        <div class="centered">
+            <input type="submit" value="submit" {% if names|length == 0 %} disabled {% endif %}>
+        </div>
     </form>
 <script>
     var participants=0;
     var participant_inputs = document.getElementsByClassName("participant");
     var updateCost = function updateCost(){
-        document.getElementById("individual").value = document.getElementById("total").value/(participants+1);
+        document.getElementById("individual").value = Math.round(document.getElementById("total").value/(participants+1)*100)/100;
     };
     var updateRoster = function updateRoster(){
         participants=0;
@@ -56,6 +64,10 @@
         updateRoster();
         updateCost();
     }
+    document.getElementById("new_entry_form").addEventListener("submit",function(){
+        updateCost();
+        return true;
+    });
     for (var i=0; i<participant_inputs.length; i++){
         participant_inputs[i].addEventListener("click",function(){
             updateRoster();

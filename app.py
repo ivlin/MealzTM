@@ -1,61 +1,119 @@
 from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
+import os, math
 
 app = Flask(__name__)
 
-meal_schema=["date","description","total","individual","recipient"]
-names=["Allison","Dan","Justin","Ivan","Ellis","Melvin"]
-create_str="CREATE TABLE IF NOT EXISTS meal (datestring VARCHAR(10), description VARCHAR(50), total REAL, individual REAL, recipient VARCHAR(10))"
-insert_str="INSERT INTO meal VALUES (?, ?, ?, ?, ?)"
-for name in names:
-    create_str = create_str[:-1] + ", " + name + " BOOLEAN" +create_str[-1]
-    insert_str = insert_str[:-1] + ", ?" + create_str[-1]
+meal_schema=["room","date","description","total","individual","recipient"]
+
+def get_names(room_id):
+    db=sqlite3.connect("db/mealtracker")
+    cursor=db.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS people (name VARCHAR(30), balance REAL, room INT)")
+    names=cursor.execute("SELECT name FROM people WHERE room = ?",(room_id)).fetchall()
+    return [name[0] for name in names]
+
+def get_createstring(names):
+    create_str="CREATE TABLE IF NOT EXISTS meal (room INT, datestring VARCHAR(10), description VARCHAR(50), total REAL, individual REAL, recipient VARCHAR(10))"
+    return create_str
+
+def get_insertstring(names):
+    insert_str="INSERT INTO meal VALUES (?, ?, ?, ?, ?, ?)"
+    return insert_str
+
+def get_table(tablename, createstring, include_id=False):
+    db=sqlite3.connect("db/mealtracker")
+    cursor = db.cursor()
+    cursor.execute(createstring)
+    if include_id:
+        return cursor.execute("SELECT rowid,* FROM "+tablename).fetchall()
+    return cursor.execute("SELECT * FROM "+tablename).fetchall()
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    rooms=get_table("room", "CREATE TABLE IF NOT EXISTS room (name VARCHAR(30), members INT)", True)
+    return render_template("index.html",rooms=rooms)
 
-def calc_balance(transactions):
-    balance={}
-    for name in names:
-        balance[name]=0
-    for transaction in transactions:
-        #print transaction
-        balance[transaction[meal_schema.index('recipient')]]-=transaction[meal_schema.index("total")]-transaction[meal_schema.index('individual')]
-        for i in xrange(len(names)):
-            if transaction[len(meal_schema)+i]:
-                balance[names[i]]+=transaction[meal_schema.index('individual')]
-    return balance
+@app.route("/<room_id>/new_member",methods=["POST"])
+def new_member(room_id):
+    db=sqlite3.connect("db/mealtracker")
+    cursor=db.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS people (name VARCHAR(30), balance REAL, room INT)")
+    cursor.execute("INSERT INTO people VALUES (?, ?, ?)", (request.form["new_member"],0.00, room_id))
+    db.commit()
+    return redirect(url_for("new_entry",room_id=room_id))
 
-@app.route("/history")
-def view_history():
+
+@app.route("/new_room",methods=["POST"])
+def new_room():
     db = sqlite3.connect("db/mealtracker")
     cursor = db.cursor()
-    cursor.execute(create_str)
-    history=cursor.execute("SELECT * FROM meal").fetchall()
-    return render_template("history.html",schema=meal_schema+names,history=history,names=names,balance=calc_balance(history))
+    cursor.execute("CREATE TABLE IF NOT EXISTS room (name VARCHAR(30), members INT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS payment (room INT, meal INT, sender INT, receiver INT, amount REAL)")
+    cursor.execute("INSERT INTO room VALUES (?, ?)",(request.form["roomname"], 0))
+    db.commit()
+    last_id=cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
+    return redirect(url_for("new_entry",room_id=last_id))
 
-@app.route("/new_entry", methods=["GET","POST"])
-def new_entry():
+@app.route("/<room_id>/edit_lobby",methods=["POST"])
+def edit_lobby(room_id):
+    db = sqlite3.connect("db/mealtracker")
+    cursor = db.cursor()
+    cursor.execute("UPDATE room SET name = ? WHERE rowid = ?", (request.form["lobby_name"], room_id))
+    db.commit()
+    return redirect(url_for("new_entry",room_id=room_id))
+
+@app.route("/<room_id>/history")
+def view_history(room_id):
+    db = sqlite3.connect("db/mealtracker")
+    cursor = db.cursor()
+    names=get_names(room_id)
+    cursor.execute(get_createstring(names))
+    meals=cursor.execute("SELECT rowid,* FROM meal WHERE room = ?",[room_id]).fetchall()
+    people=cursor.execute("SELECT name,balance FROM people WHERE room = ?",(room_id)).fetchall()
+    transactions=cursor.execute("""SELECT payment.meal, sender.name, recipient.name, payment.amount FROM payment
+                                    INNER JOIN people sender on payment.sender=sender.rowid
+                                    INNER JOIN people recipient on payment.receiver=recipient.rowid
+                                    WHERE payment.room = ?
+                                    ORDER BY payment.room, payment.meal""", (room_id)).fetchall()
+    combined_view = {}
+    for meal in meals:
+        combined_view[meal[0]] = list(meal[1:]) + [0]*len(names)
+    for transaction in transactions:
+        combined_view[transaction[0]][len(meal_schema)+names.index(transaction[1])] = transaction[3]
+    return render_template("history.html",schema=meal_schema+names,history=combined_view,names=names,balance=people)
+
+@app.route("/<room_id>/new_entry", methods=["GET","POST"])
+def new_entry(room_id):
+    db = sqlite3.connect("db/mealtracker")
+    cursor = db.cursor()
     if request.method == "GET":
-        return render_template("new_entry.html",names=names)
+        room_name=cursor.execute("SELECT name FROM room WHERE rowid = ?",(room_id)).fetchone()[0]
+        return render_template("new_entry.html",room_name=room_name,names=get_names(room_id))
     elif request.method == "POST":
-        db = sqlite3.connect("db/mealtracker")
-        cursor = db.cursor()
-        cursor.execute(create_str)
+        names=get_names(room_id)
+        cursor.execute(get_createstring(names))
         form_vals=[]
-        #print request.form
-        #print request.form["individual"]
         for field in meal_schema:
-            form_vals.append(request.form[field])
-        for name in names:
+            if field != "room":
+                form_vals.append(request.form[field])
+        cursor.execute(get_insertstring([]), [room_id]+form_vals)
+        meal_id=cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
+        for name in get_names(room_id):
+            cursor.execute("CREATE TABLE IF NOT EXISTS payment (room INT, meal INT, sender INT, receiver INT, amount REAL)")
             if name in request.form:
-                form_vals.append(True)
-            else:
-                form_vals.append(False)
-        cursor.execute(insert_str, form_vals)
+                sender=cursor.execute("SELECT rowid FROM people WHERE room = ? AND name = ?",(room_id, name)).fetchone()[0]
+                recipient=cursor.execute("SELECT rowid FROM people WHERE room = ? AND name = ?",(room_id, request.form["recipient"])).fetchone()[0]
+                cursor.execute("INSERT INTO payment VALUES (?, ?, ?, ?, ?)", (room_id, meal_id, sender, recipient, request.form["individual"]))
+                cursor.execute("UPDATE people SET balance = balance + ? WHERE rowid = ?",(request.form["individual"], sender))
+                cursor.execute("UPDATE people SET balance = balance - ? WHERE rowid = ?",(request.form["total"], recipient))
         db.commit()
-        return redirect(url_for("new_entry"))
+        return redirect(url_for("new_entry", room_id=room_id))
+
+@app.route("/reset")
+def reset():
+    os.remove("db/mealtracker")
+    return redirect(url_for("index"))
 
 if __name__=="__main__":
     app.debug = True

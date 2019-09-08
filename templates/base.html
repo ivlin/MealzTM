@@ -4,14 +4,22 @@
 <head>
     <title>Mealz</title>
 </head>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='stylesheets/navigation.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='stylesheets/form.css') }}" />
 
 <body>
 <div id="header">
+    <a href="../.." id="goto_home">
+        <div>
+            <p><i class="material-icons">home</i></p>
+        </div>
+    </a>
     <a href="new_entry">
-    <div id="goto_new"><p> New </p> </div>
+        <div id="goto_new"><p> New </p> </div>
     </a>
     <a href="history">
-    <div id="goto_old"><p> Old </p> </div>
+        <div id="goto_old"><p> Old </p> </div>
     </a>
 </div>
 <div id="header-spacer">
@@ -19,8 +27,7 @@
 {% block body %}
 {% endblock %}
 </body>
-<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='stylesheets/navigation.css') }}" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='stylesheets/form.css') }}" />
+
 <script>
 document.addEventListener("DOMContentLoaded", function(){
   document.getElementById("header-spacer").style.height=""+(document.getElementById("header").offsetHeight+5)+"px";

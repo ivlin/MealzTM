@@ -10,10 +10,10 @@
             Balance
         </th>
     </tr>
-    {% for name, num in balance.items() %}
+    {% for person in balance %}
     <tr>
-        <td style="background-color: #EEE; margin: 0; padding: 5px"> {{ name }} </td>
-        <td style="margin: 0; padding: 5px"> {{ num }} </td>
+        <td style="background-color: #EEE; margin: 0; padding: 5px"> {{ person.0 }} </td>
+        <td style="margin: 0; padding: 5px"> {{ person.1 }} </td>
     </tr>
     {% endfor %}
 </table>
@@ -25,7 +25,7 @@
         <th> {{field}} </th>
     {% endfor %}
     </tr>
-    {% for item in history %}
+    {% for key,item in history.items() %}
         <tr class="transaction-item">
         {% for field in item %}
         <td>

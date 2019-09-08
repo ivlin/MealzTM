@@ -3,6 +3,9 @@ body{
     margin: 0;
     height:100%;
 }
+/*
+    HEADER navbar
+*/
 #header{
     margin:-5px;
     display:flex;
@@ -11,7 +14,6 @@ body{
     position: fixed;
     min-height: 20px;
     max-height:100px;
-    background-color: red;
     position: fixed;
     text-align: center;
     font-family:Roboto;
@@ -35,7 +37,14 @@ a {
     background-color: #444054;
     color: #FAC9B8;
 }
-#goto_old{
+#goto_old, #goto_home{
     color: #444054;
     background-color: #FAC9B8;
+}
+#goto_home{
+    width:30%;
+    max-width: 5em;
+}
+#goto_home i{
+    font-size:1.5em;
 }

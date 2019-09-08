@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block body %}
+<h2>Running Balance</h2>
+<h2>Transactions</h2>
+<table id="room-table">
+    <tr style="background-color: #EEE; margin: 0; padding: 5px">
+    {% for field in schema %}
+        <th> {{field}} </th>
+    {% endfor %}
+    </tr>
+    {% for room in rooms %}
+        <tr class="transaction-item">
+
+
+        {% for field in room %}
+        <td>
+            {{ field }}
+        </td>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+</table>
+<style>
+h2 {
+    font-family: Roboto;
+}
+table {
+    font-family: Roboto;
+}
+th,td {
+    padding: 5px;
+}
+</style>
+{% endblock %}
