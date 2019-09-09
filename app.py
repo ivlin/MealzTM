@@ -18,6 +18,7 @@ def new_member(room_id):
     cursor=db.cursor()
     cursor.execute("CREATE TABLE IF NOT EXISTS people (name VARCHAR(30), balance REAL, room INT)")
     cursor.execute("INSERT INTO people VALUES (?, ?, ?)", (request.form["new_member"],0.00, room_id))
+    cursor.execute("UPDATE room SET members = members + 1 WHERE rowid = ?",(room_id))
     db.commit()
     return redirect(url_for("new_entry",room_id=room_id))
 
