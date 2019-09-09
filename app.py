@@ -5,7 +5,7 @@ from utils import *
 
 app = Flask(__name__)
 
-meal_schema=["room","date","description","total","individual","recipient"]
+meal_schema=["room","date","description","total","individual","supplier"]
 
 @app.route("/")
 def index():
@@ -16,7 +16,7 @@ def index():
 def new_member(room_id):
     db=sqlite3.connect("db/mealtracker")
     cursor=db.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS people (name VARCHAR(30), balance REAL, room INT)")
+    #cursor.execute("CREATE TABLE IF NOT EXISTS people (name VARCHAR(30), balance REAL, room INT)")
     cursor.execute("INSERT INTO people VALUES (?, ?, ?)", (request.form["new_member"],0.00, room_id))
     cursor.execute("UPDATE room SET members = members + 1 WHERE rowid = ?",(room_id))
     db.commit()
@@ -27,8 +27,8 @@ def new_member(room_id):
 def new_room():
     db = sqlite3.connect("db/mealtracker")
     cursor = db.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS room (name VARCHAR(30), members INT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS payment (room INT, meal INT, sender INT, receiver INT, amount REAL)")
+    #cursor.execute("CREATE TABLE IF NOT EXISTS room (name VARCHAR(30), members INT)")
+    #cursor.execute("CREATE TABLE IF NOT EXISTS payment (room INT, meal INT, sender INT, receiver INT, amount REAL)")
     cursor.execute("INSERT INTO room VALUES (?, ?)",(request.form["roomname"], 0))
     db.commit()
     last_id=cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
@@ -80,13 +80,13 @@ def new_entry(room_id):
         cursor.execute(get_insertstring([]), [room_id]+form_vals)
         meal_id=cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
         for name in get_names(room_id):
-            cursor.execute("CREATE TABLE IF NOT EXISTS payment (room INT, meal INT, sender INT, receiver INT, amount REAL)")
+            #cursor.execute("CREATE TABLE IF NOT EXISTS payment (room INT, meal INT, sender INT, receiver INT, amount REAL)")
             if name in request.form:
                 sender=cursor.execute("SELECT rowid FROM people WHERE room = ? AND name = ?",(room_id, name)).fetchone()[0]
                 recipient=cursor.execute("SELECT rowid FROM people WHERE room = ? AND name = ?",(room_id, request.form["recipient"])).fetchone()[0]
                 cursor.execute("INSERT INTO payment VALUES (?, ?, ?, ?, ?)", (room_id, meal_id, sender, recipient, request.form["individual"]))
                 cursor.execute("UPDATE people SET balance = balance + ? WHERE rowid = ?",(request.form["individual"], sender))
-        cursor.execute("UPDATE people SET balance = balance - ? WHERE rowid = ?",(request.form["total"], recipient))
+        cursor.execute("UPDATE people SET balance = balance - ? WHERE rowid = ?",(request.form["total"]-request.form["individual"], recipient))
         db.commit()
         return redirect(url_for("new_entry", room_id=room_id))
 
@@ -100,18 +100,17 @@ def clear():
 
 
 @app.route("/<room_id>/delete")
-def delete_room():
+def delete_room(room_id):
     db = sqlite3.connect("db/mealtracker")
     cursor = db.cursor()
-    cursor.execute("DELETE FROM meals WHERE room = ?")
-    cursor.execute("DELETE FROM people WHERE room = ?")
-    cursor.execute("DELETE FROM payment WHERE room = ?")
+    cursor.execute("DELETE FROM room WHERE rowid = ?",(room_id))
     db.commit()
     return redirect(url_for("index"))
 
 @app.route("/reset_database")
 def reset():
     os.remove("db/mealtracker")
+    initialize_db()
     return redirect(url_for("index"))
 
 if __name__=="__main__":

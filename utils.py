@@ -1,5 +1,15 @@
 import sqlite3
 
+def initialize_db():
+    db=sqlite3.connect("db/mealtracker")
+    cursor=db.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS room (name VARCHAR(30), members INT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS meal (room INT, datestring VARCHAR(10), description VARCHAR(50), total REAL, individual REAL, recipient VARCHAR(10))")
+    cursor.execute("CREATE TABLE IF NOT EXISTS people (name VARCHAR(30), balance REAL, room INT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS payment (room INT, meal INT, sender INT, receiver INT, amount REAL)")
+    db.commit()
+    return
+
 def get_names(room_id):
     db=sqlite3.connect("db/mealtracker")
     cursor=db.cursor()
