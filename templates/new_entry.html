@@ -29,7 +29,7 @@
         {% endfor %}
         </div>
         Supplier
-        <select class="styled-select slate" name="recipient" id="recipient">
+        <select class="styled-select slate" name="supplier" id="supplier">
             {% for name in names %}
                 <option value="{{ name }}">{{ name }}</option>
             {% endfor %}
@@ -56,11 +56,11 @@
         updateCost();
     };
     var updateSupplier = function updateSupplier(){
-        document.getElementById(document.getElementById("recipient").value).checked=false;
+        document.getElementById(document.getElementById("supplier").value).checked=false;
         for (var i=0; i<participant_inputs.length; i++){
             participant_inputs[i].disabled=false;
         }
-        document.getElementById(document.getElementById("recipient").value).disabled=true;
+        document.getElementById(document.getElementById("supplier").value).disabled=true;
         updateRoster();
         updateCost();
     }
@@ -76,7 +76,7 @@
     document.getElementById("total").addEventListener("blur",function(){
         updateCost();
     });
-    document.getElementById("recipient").addEventListener("change",function(){
+    document.getElementById("supplier").addEventListener("change",function(){
         updateSupplier();
     });
     updateSupplier();

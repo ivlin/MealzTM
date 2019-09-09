@@ -16,7 +16,6 @@ def index():
 def new_member(room_id):
     db=sqlite3.connect("db/mealtracker")
     cursor=db.cursor()
-    #cursor.execute("CREATE TABLE IF NOT EXISTS people (name VARCHAR(30), balance REAL, room INT)")
     cursor.execute("INSERT INTO people VALUES (?, ?, ?)", (request.form["new_member"],0.00, room_id))
     cursor.execute("UPDATE room SET members = members + 1 WHERE rowid = ?",(room_id))
     db.commit()
@@ -27,8 +26,6 @@ def new_member(room_id):
 def new_room():
     db = sqlite3.connect("db/mealtracker")
     cursor = db.cursor()
-    #cursor.execute("CREATE TABLE IF NOT EXISTS room (name VARCHAR(30), members INT)")
-    #cursor.execute("CREATE TABLE IF NOT EXISTS payment (room INT, meal INT, sender INT, receiver INT, amount REAL)")
     cursor.execute("INSERT INTO room VALUES (?, ?)",(request.form["roomname"], 0))
     db.commit()
     last_id=cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
@@ -47,7 +44,6 @@ def view_history(room_id):
     db = sqlite3.connect("db/mealtracker")
     cursor = db.cursor()
     names=get_names(room_id)
-    cursor.execute(get_createstring(names))
     meals=cursor.execute("SELECT rowid,* FROM meal WHERE room = ?",[room_id]).fetchall()
     people=cursor.execute("SELECT name,balance FROM people WHERE room = ?",(room_id)).fetchall()
     transactions=cursor.execute("""SELECT payment.meal, sender.name, recipient.name, payment.amount FROM payment
@@ -72,7 +68,6 @@ def new_entry(room_id):
         return render_template("new_entry.html",room_name=room_name,names=get_names(room_id))
     elif request.method == "POST":
         names=get_names(room_id)
-        cursor.execute(get_createstring(names))
         form_vals=[]
         for field in meal_schema:
             if field != "room":
@@ -80,13 +75,12 @@ def new_entry(room_id):
         cursor.execute(get_insertstring([]), [room_id]+form_vals)
         meal_id=cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
         for name in get_names(room_id):
-            #cursor.execute("CREATE TABLE IF NOT EXISTS payment (room INT, meal INT, sender INT, receiver INT, amount REAL)")
             if name in request.form:
                 sender=cursor.execute("SELECT rowid FROM people WHERE room = ? AND name = ?",(room_id, name)).fetchone()[0]
-                recipient=cursor.execute("SELECT rowid FROM people WHERE room = ? AND name = ?",(room_id, request.form["recipient"])).fetchone()[0]
+                recipient=cursor.execute("SELECT rowid FROM people WHERE room = ? AND name = ?",(room_id, request.form["supplier"])).fetchone()[0]
                 cursor.execute("INSERT INTO payment VALUES (?, ?, ?, ?, ?)", (room_id, meal_id, sender, recipient, request.form["individual"]))
                 cursor.execute("UPDATE people SET balance = balance + ? WHERE rowid = ?",(request.form["individual"], sender))
-        cursor.execute("UPDATE people SET balance = balance - ? WHERE rowid = ?",(request.form["total"]-request.form["individual"], recipient))
+        cursor.execute("UPDATE people SET balance = balance - ? + ? WHERE rowid = ?",(request.form["total"],request.form["individual"], recipient))
         db.commit()
         return redirect(url_for("new_entry", room_id=room_id))
 
