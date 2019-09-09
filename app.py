@@ -98,6 +98,9 @@ def delete_room(room_id):
     db = sqlite3.connect("db/mealtracker")
     cursor = db.cursor()
     cursor.execute("DELETE FROM room WHERE rowid = ?",(room_id))
+    cursor.execute("DELETE FROM meal WHERE room = ?",(room_id))
+    cursor.execute("DELETE FROM people WHERE room = ?",(room_id))
+    cursor.execute("DELETE FROM payment WHERE room = ?",(room_id))
     db.commit()
     return redirect(url_for("index"))
 
