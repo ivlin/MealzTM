@@ -226,7 +226,7 @@ def new_entry(room_id):
 
         names=Person.query.filter_by(room=room_id).all()
         recipient=Person.query.filter_by(room=room_id, name=request.form["supplier"]).first()
-        print request.form["individual"]
+
         for name in names:
             if name.name in request.form:
                 sender=Person.query.filter_by(room=room_id, name=name.name).first()
