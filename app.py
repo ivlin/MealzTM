@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String, ForeignKey
 import sqlite3
 import os
-from utils import *
+#from utils import *
 
 app = Flask(__name__)
 app.config.from_object(os.environ["APP_SETTINGS"])
@@ -179,7 +179,8 @@ def view_history(room_id):
             transaction_dic[meal.id].append(meal.__dict__.get(field))
         transaction_dic[meal.id] += [0]*len(names)
     for transaction in transactions:
-        transaction_dic[transaction.meal][len(meal_schema)+names.index(transaction.sender)] = transaction.amount
+        transaction_dic[transaction.meal][len(meal_schema)+names.index(name_dic[transaction.sender])] = transaction.amount
+
     return render_template("history.html",schema=meal_schema+names,history=transaction_dic,names=names,balance=people)
 
 @app.route("/<room_id>/new_entry", methods=["GET","POST"])
@@ -196,12 +197,16 @@ def new_entry(room_id):
         names=Person.query.filter_by(room=room_id).all()
         return render_template("new_entry.html",room_name=room_name,names=names)
     elif request.method == "POST":
-        names=get_names(room_id)
         form_vals=[]
         for field in meal_schema:
             if field != "room":
                 form_vals.append(request.form[field])
         '''
+        names=get_names(room_id)
+        form_vals=[]
+        for field in meal_schema:
+            if field != "room":
+                form_vals.append(request.form[field])
         cursor.execute(get_insertstring([]), [room_id]+form_vals)
         meal_id=cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
         recipient=cursor.execute("SELECT rowid FROM people WHERE room = ? AND name = ?",(room_id, request.form["supplier"])).fetchone()[0]
@@ -219,16 +224,19 @@ def new_entry(room_id):
         psql_db.session.refresh(new_meal)
         meal_id=new_meal.id
 
-        for name in get_names(room_id):
-            if name in request.form:
-                sender=Person.query.filter_by(room=room_id, name=name).first()
-                recipient=Person.query.filter_by(room=room_id, name=request.form["supplier"]).first()
+        names=Person.query.filter_by(room=room_id).all()
+        recipient=Person.query.filter_by(room=room_id, name=request.form["supplier"]).first()
+        print request.form["individual"]
+        for name in names:
+            if name.name in request.form:
+                sender=Person.query.filter_by(room=room_id, name=name.name).first()
+                sender.balance += float(request.form["individual"])
                 psql_db.session.add(Transaction(room_id, meal_id, sender.id, recipient.id, request.form["individual"]))
-                Person.query.filter_by(balance=request.form["individual"], id=sender.id)
                 psql_db.session.commit()
 
-        recipient=Person.query.filter_by(room=room_id, name=request.form["supplier"]).first()
-        Person.query.filter_by(id=recipient.id).first().balance-=float(request.form["total"])-float(request.form["individual"])
+        ppl=Person.query.filter_by(room=room_id).all()
+
+        recipient.balance-=float(request.form["total"])-float(request.form["individual"])
         psql_db.session.commit()
 
         return redirect(url_for("new_entry", room_id=room_id))

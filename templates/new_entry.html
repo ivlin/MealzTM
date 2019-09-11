@@ -23,7 +23,7 @@
         <div class="indented">
         {% for name in names %}
             <label class="container">{{ name.name }}
-                <input type="checkbox" class="participant" id="{{ name }}" name="{{ name }}">
+                <input type="checkbox" class="participant" id="{{ name.name }}" name="{{ name.name }}">
                 <span class="checkmark"></span>
             </label>
         {% endfor %}
@@ -31,7 +31,7 @@
         Supplier
         <select class="styled-select slate" name="supplier" id="supplier">
             {% for name in names %}
-                <option value="{{ name }}">{{ name.name }}</option>
+                <option value="{{ name.name }}">{{ name.name }}</option>
             {% endfor %}
         </select><br>
         Total Cost <span style="color:red; text-decoration:bold">*</span><input type="number" id="total" name="total" step="0.01" value="0.00" required> <br>
